@@ -1,0 +1,208 @@
+/* Quoted message inside a reply bubble */
+.mailreply-quote {
+    display: block;
+    margin: 0 0 6px 0;
+    padding: 4px 8px;
+    border-left: 3px solid var(--primary, #708fa0);
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    font-size: 0.9em;
+    line-height: 1.3;
+    text-align: start;
+    /* Never let the quote decide how wide the bubble is. A flex item defaults to
+       min-width:auto, so an unbreakable line of quoted text pushed the whole message past the
+       right edge of a 360px screen (reported from a real phone-width browser, reproduced at
+       360px: the bubble and its text were clipped on the left). */
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.mailreply-quote:hover,
+.mailreply-quote:focus {
+    background-color: rgba(0, 0, 0, 0.09);
+    outline: none;
+}
+
+.mailreply-quote-author {
+    display: block;
+    font-weight: 600;
+    opacity: 0.85;
+    overflow-wrap: anywhere;
+}
+
+.mailreply-quote-text {
+    /* Wrap and clamp instead of one nowrap line: nowrap gave the parent an intrinsic width it
+       could not shrink below, which is what broke phone widths. Two lines, then ellipsis. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    opacity: 0.75;
+}
+
+.mailreply-quote-text p {
+    display: inline;
+    margin: 0;
+}
+
+/* The per-entry reply action.
+   mail renders the entry menu as the FIRST child of the entry's flex row, which is right for
+   your own (right-aligned) messages but pushes someone else's message to the right and puts the
+   action in front of the text. Flexbox `order` moves it visually behind the bubble without
+   touching mail's markup, so the message keeps its normal position - the way chat clients do it. */
+.mailreply-reply-button {
+    cursor: pointer;
+}
+
+.mail-conversation-entry:not(.own) .conversation-menu {
+    order: 99;
+    /* mail styles this menu for the START of the row: `.conversation-menu{padding-left:35px}`
+       gives it separation from an own, right-aligned bubble. Once it is reordered to the end,
+       that 35px pushes it straight off a phone screen (measured at 360px: right=368, i.e. 8px
+       past the edge, while the control instance overflowed nothing). Swap the side. */
+    padding-left: 0;
+    padding-right: 2px;
+}
+
+/* Let the bubble give up space for the trailing action: a flex item will not shrink below its
+   content unless min-width is set. */
+.mail-conversation-entry .d-flex {
+    max-width: 100%;
+}
+
+.mail-conversation-entry .conversation-entry-content {
+    min-width: 0;
+}
+
+.mail-conversation-entry .conversation-menu {
+    align-self: flex-end;
+}
+
+/* Desktop needs nothing from this module: mail already hides the entry menu and reveals it on
+   :hover and :focus-within.
+   Touch is the gap. :hover never fires properly on a phone - and when a tap does trigger it, it
+   sticks - so the first version here simply forced the menu visible on touch. That left the reply
+   AND mail's edit pencil showing permanently on every message, which is not how a chat app
+   behaves. Instead the menu is driven by a class this module's JS puts on the tapped message and
+   removes again a few seconds later.
+   !important is deliberate: mail's reveal rule has the same specificity as the override below,
+   and asset order between the two stylesheets is not guaranteed. */
+@media (hover: none) {
+    .mail-conversation-entry .conversation-menu {
+        transition: opacity 140ms ease-in;
+    }
+
+    .mail-conversation-entry:hover .conversation-menu {
+        opacity: 0 !important;
+    }
+
+    .mail-conversation-entry.mailreply-actions-visible .conversation-menu,
+    .mail-conversation-entry:focus-within .conversation-menu {
+        opacity: 1 !important;
+    }
+}
+
+/* Strip above the input while composing a reply.
+   Slides down when you pick a message and slides back up when you cancel or send, so the strip
+   reads as something that opened rather than something that blinked into place. */
+@keyframes mailreply-slide-in {
+    from { opacity: 0; transform: translateY(-6px); max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+    to   { opacity: 1; transform: translateY(0);    max-height: 80px; margin-bottom: 8px; padding-top: 6px; padding-bottom: 6px; }
+}
+
+@keyframes mailreply-slide-out {
+    from { opacity: 1; transform: translateY(0);    max-height: 80px; margin-bottom: 8px; padding-top: 6px; padding-bottom: 6px; }
+    to   { opacity: 0; transform: translateY(-6px); max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+}
+
+.mailreply-composer {
+    animation: mailreply-slide-in 170ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    overflow: hidden;
+}
+
+.mailreply-composer.closing {
+    animation: mailreply-slide-out 150ms cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+}
+
+/* The quoted block on a message that has just arrived gets the same opening movement. */
+.mail-conversation-entry .mailreply-quote {
+    animation: mailreply-quote-in 180ms ease-out;
+}
+
+@keyframes mailreply-quote-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Honour the system setting - no movement for anyone who asked for none. */
+@media (prefers-reduced-motion: reduce) {
+    .mailreply-composer,
+    .mailreply-composer.closing,
+    .mail-conversation-entry .mailreply-quote,
+    .mailreply-flash .conversation-entry-content {
+        animation: none;
+    }
+}
+
+.mailreply-composer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    padding: 6px 10px;
+    border-left: 3px solid var(--primary, #708fa0);
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.05);
+    font-size: 0.9em;
+}
+
+.mailreply-composer-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.mailreply-composer-title {
+    display: block;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.mailreply-composer-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.75;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.mailreply-composer-cancel {
+    flex: 0 0 auto;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    padding: 2px 6px;
+    opacity: 0.7;
+}
+
+.mailreply-composer-cancel:hover {
+    opacity: 1;
+}
+
+/* Flash the original message after jumping to it */
+.mailreply-flash .conversation-entry-content {
+    animation: mailreply-flash 1.2s ease-out;
+}
+
+@keyframes mailreply-flash {
+    0% { background-color: rgba(255, 214, 0, 0.45); }
+    100% { background-color: transparent; }
+}

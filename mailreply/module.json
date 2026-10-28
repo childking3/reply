@@ -1,0 +1,16 @@
+{
+  "id": "mailreply",
+  "name": "Message Replies",
+  "description": "Reply to a single message inside a Messenger conversation. The quoted message is shown above the reply, like in WhatsApp, and clicking it jumps to the original.",
+  "keywords": ["mail", "messenger", "reply", "quote", "conversation"],
+  "version": "1.0.2",
+  "license": "AGPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Cipher Lab"
+    }
+  ],
+  "humhub": {
+    "minVersion": "1.19"
+  }
+}
