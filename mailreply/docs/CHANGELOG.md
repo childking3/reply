@@ -18,7 +18,7 @@
   and `:focus-within`; only the `@media (hover: none)` override for touch devices is kept.
 
 ## 1.0.0 (2026-10-25)
-- Reply to a single message inside a Messenger conversation, WhatsApp style: a reply action per
+- Reply to a single message inside a Messenger conversation, a reply action per
   message, a "replying to" strip while composing, the quoted message rendered inside the reply,
   and click-to-jump back to the original.
 - Implemented purely through HumHub's documented extension points - no file of the mail module or
